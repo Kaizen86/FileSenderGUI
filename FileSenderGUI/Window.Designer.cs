@@ -30,7 +30,7 @@
         {
             this.Tabs = new System.Windows.Forms.TabControl();
             this.sendTab = new System.Windows.Forms.TabPage();
-            this.send_Status = new System.Windows.Forms.Label();
+            this.send_Status = new System.Windows.Forms.TextBox();
             this.send_sendButton = new System.Windows.Forms.Button();
             this.send_fileSelectButton = new System.Windows.Forms.Button();
             this.receiveTab = new System.Windows.Forms.TabPage();
@@ -59,7 +59,7 @@
             this.Tabs.Location = new System.Drawing.Point(0, 0);
             this.Tabs.Name = "Tabs";
             this.Tabs.SelectedIndex = 0;
-            this.Tabs.Size = new System.Drawing.Size(462, 417);
+            this.Tabs.Size = new System.Drawing.Size(388, 354);
             this.Tabs.TabIndex = 0;
             // 
             // sendTab
@@ -71,19 +71,23 @@
             this.sendTab.Location = new System.Drawing.Point(4, 29);
             this.sendTab.Name = "sendTab";
             this.sendTab.Padding = new System.Windows.Forms.Padding(3);
-            this.sendTab.Size = new System.Drawing.Size(454, 384);
+            this.sendTab.Size = new System.Drawing.Size(380, 321);
             this.sendTab.TabIndex = 0;
             this.sendTab.Text = "Send";
             // 
             // send_Status
             // 
-            this.send_Status.AutoSize = true;
-            this.send_Status.Location = new System.Drawing.Point(30, 162);
+            this.send_Status.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.send_Status.Location = new System.Drawing.Point(8, 119);
+            this.send_Status.Multiline = true;
             this.send_Status.Name = "send_Status";
-            this.send_Status.Size = new System.Drawing.Size(121, 20);
+            this.send_Status.ReadOnly = true;
+            this.send_Status.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.send_Status.Size = new System.Drawing.Size(364, 194);
             this.send_Status.TabIndex = 2;
             this.send_Status.Text = "Waiting for file...";
-            this.send_Status.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // send_sendButton
             // 
@@ -111,7 +115,7 @@
             this.receiveTab.Location = new System.Drawing.Point(4, 29);
             this.receiveTab.Name = "receiveTab";
             this.receiveTab.Padding = new System.Windows.Forms.Padding(3);
-            this.receiveTab.Size = new System.Drawing.Size(454, 384);
+            this.receiveTab.Size = new System.Drawing.Size(380, 321);
             this.receiveTab.TabIndex = 1;
             this.receiveTab.Text = "Receive";
             // 
@@ -128,7 +132,7 @@
             this.settingsTab.Location = new System.Drawing.Point(4, 29);
             this.settingsTab.Name = "settingsTab";
             this.settingsTab.Padding = new System.Windows.Forms.Padding(3);
-            this.settingsTab.Size = new System.Drawing.Size(454, 384);
+            this.settingsTab.Size = new System.Drawing.Size(380, 321);
             this.settingsTab.TabIndex = 2;
             this.settingsTab.Text = "Settings";
             // 
@@ -212,7 +216,8 @@
             // 
             // settings_saveSettingsButton
             // 
-            this.settings_saveSettingsButton.Location = new System.Drawing.Point(371, 6);
+            this.settings_saveSettingsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.settings_saveSettingsButton.Location = new System.Drawing.Point(302, 6);
             this.settings_saveSettingsButton.Name = "settings_saveSettingsButton";
             this.settings_saveSettingsButton.Size = new System.Drawing.Size(75, 32);
             this.settings_saveSettingsButton.TabIndex = 0;
@@ -228,9 +233,9 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(462, 417);
+            this.ClientSize = new System.Drawing.Size(388, 354);
             this.Controls.Add(this.Tabs);
-            this.MinimumSize = new System.Drawing.Size(300, 240);
+            this.MinimumSize = new System.Drawing.Size(410, 310);
             this.Name = "Window";
             this.Text = "File Sender";
             this.Tabs.ResumeLayout(false);
@@ -260,7 +265,7 @@
         private System.Windows.Forms.Label settings_listenPortInput_label;
         private System.Windows.Forms.Label settings_serverPortInput_label;
         private System.Windows.Forms.Label settings_serverAddressInput_label;
-        private System.Windows.Forms.Label send_Status;
+        private System.Windows.Forms.TextBox send_Status;
     }
 }
 
