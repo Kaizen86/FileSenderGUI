@@ -30,10 +30,17 @@
         {
             this.Tabs = new System.Windows.Forms.TabControl();
             this.sendTab = new System.Windows.Forms.TabPage();
+            this.send_progressBar = new System.Windows.Forms.ProgressBar();
             this.send_Status = new System.Windows.Forms.TextBox();
             this.send_sendButton = new System.Windows.Forms.Button();
             this.send_fileSelectButton = new System.Windows.Forms.Button();
             this.receiveTab = new System.Windows.Forms.TabPage();
+            this.receive_declineButton = new System.Windows.Forms.Button();
+            this.receive_acceptButton = new System.Windows.Forms.Button();
+            this.receive_Status = new System.Windows.Forms.TextBox();
+            this.receive_startServerButton = new System.Windows.Forms.Button();
+            this.receive_selectFolderButton = new System.Windows.Forms.Button();
+            this.receive_progressBar = new System.Windows.Forms.ProgressBar();
             this.settingsTab = new System.Windows.Forms.TabPage();
             this.settings_listenPortInput_label = new System.Windows.Forms.Label();
             this.settings_serverPortInput_label = new System.Windows.Forms.Label();
@@ -43,9 +50,10 @@
             this.settings_serverAddressInput = new System.Windows.Forms.TextBox();
             this.settings_saveSettingsButton = new System.Windows.Forms.Button();
             this.send_fileSelect = new System.Windows.Forms.OpenFileDialog();
-            this.send_progressBar = new System.Windows.Forms.ProgressBar();
+            this.receive_selectFolder = new System.Windows.Forms.FolderBrowserDialog();
             this.Tabs.SuspendLayout();
             this.sendTab.SuspendLayout();
+            this.receiveTab.SuspendLayout();
             this.settingsTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.settings_listenPortInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.settings_serverPortInput)).BeginInit();
@@ -77,49 +85,134 @@
             this.sendTab.TabIndex = 0;
             this.sendTab.Text = "Send";
             // 
+            // send_progressBar
+            // 
+            this.send_progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.send_progressBar.Location = new System.Drawing.Point(8, 277);
+            this.send_progressBar.Name = "send_progressBar";
+            this.send_progressBar.Size = new System.Drawing.Size(364, 36);
+            this.send_progressBar.TabIndex = 1;
+            // 
             // send_Status
             // 
             this.send_Status.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.send_Status.Location = new System.Drawing.Point(8, 119);
+            this.send_Status.Location = new System.Drawing.Point(8, 92);
             this.send_Status.Multiline = true;
             this.send_Status.Name = "send_Status";
             this.send_Status.ReadOnly = true;
             this.send_Status.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.send_Status.Size = new System.Drawing.Size(364, 152);
+            this.send_Status.Size = new System.Drawing.Size(364, 179);
             this.send_Status.TabIndex = 2;
             this.send_Status.Text = "Waiting for file...";
             // 
             // send_sendButton
             // 
-            this.send_sendButton.Location = new System.Drawing.Point(185, 22);
+            this.send_sendButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.send_sendButton.Location = new System.Drawing.Point(258, 6);
             this.send_sendButton.Name = "send_sendButton";
-            this.send_sendButton.Size = new System.Drawing.Size(92, 71);
+            this.send_sendButton.Size = new System.Drawing.Size(114, 80);
             this.send_sendButton.TabIndex = 1;
             this.send_sendButton.Text = "Send";
             this.send_sendButton.UseVisualStyleBackColor = true;
-            this.send_sendButton.Click += new System.EventHandler(this.sendButton_Click);
+            this.send_sendButton.Click += new System.EventHandler(this.send_sendButton_Click);
             // 
             // send_fileSelectButton
             // 
-            this.send_fileSelectButton.Location = new System.Drawing.Point(83, 22);
+            this.send_fileSelectButton.Location = new System.Drawing.Point(8, 6);
             this.send_fileSelectButton.Name = "send_fileSelectButton";
-            this.send_fileSelectButton.Size = new System.Drawing.Size(96, 71);
+            this.send_fileSelectButton.Size = new System.Drawing.Size(114, 80);
             this.send_fileSelectButton.TabIndex = 0;
             this.send_fileSelectButton.Text = "Select File";
             this.send_fileSelectButton.UseVisualStyleBackColor = true;
-            this.send_fileSelectButton.Click += new System.EventHandler(this.fileSelectButton_Click);
+            this.send_fileSelectButton.Click += new System.EventHandler(this.send_fileSelectButton_Click);
             // 
             // receiveTab
             // 
             this.receiveTab.BackColor = System.Drawing.SystemColors.Control;
+            this.receiveTab.Controls.Add(this.receive_declineButton);
+            this.receiveTab.Controls.Add(this.receive_acceptButton);
+            this.receiveTab.Controls.Add(this.receive_Status);
+            this.receiveTab.Controls.Add(this.receive_startServerButton);
+            this.receiveTab.Controls.Add(this.receive_selectFolderButton);
+            this.receiveTab.Controls.Add(this.receive_progressBar);
             this.receiveTab.Location = new System.Drawing.Point(4, 29);
             this.receiveTab.Name = "receiveTab";
             this.receiveTab.Padding = new System.Windows.Forms.Padding(3);
             this.receiveTab.Size = new System.Drawing.Size(380, 321);
             this.receiveTab.TabIndex = 1;
             this.receiveTab.Text = "Receive";
+            // 
+            // receive_declineButton
+            // 
+            this.receive_declineButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.receive_declineButton.Enabled = false;
+            this.receive_declineButton.Location = new System.Drawing.Point(251, 49);
+            this.receive_declineButton.Name = "receive_declineButton";
+            this.receive_declineButton.Size = new System.Drawing.Size(121, 35);
+            this.receive_declineButton.TabIndex = 6;
+            this.receive_declineButton.Text = "Decline";
+            this.receive_declineButton.UseVisualStyleBackColor = true;
+            this.receive_declineButton.Click += new System.EventHandler(this.receive_declineButton_Click);
+            // 
+            // receive_acceptButton
+            // 
+            this.receive_acceptButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.receive_acceptButton.Enabled = false;
+            this.receive_acceptButton.Location = new System.Drawing.Point(251, 8);
+            this.receive_acceptButton.Name = "receive_acceptButton";
+            this.receive_acceptButton.Size = new System.Drawing.Size(121, 35);
+            this.receive_acceptButton.TabIndex = 5;
+            this.receive_acceptButton.Text = "Accept";
+            this.receive_acceptButton.UseVisualStyleBackColor = true;
+            this.receive_acceptButton.Click += new System.EventHandler(this.receive_acceptButton_Click);
+            // 
+            // receive_Status
+            // 
+            this.receive_Status.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.receive_Status.Location = new System.Drawing.Point(8, 93);
+            this.receive_Status.Multiline = true;
+            this.receive_Status.Name = "receive_Status";
+            this.receive_Status.ReadOnly = true;
+            this.receive_Status.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.receive_Status.Size = new System.Drawing.Size(364, 180);
+            this.receive_Status.TabIndex = 3;
+            // 
+            // receive_startServerButton
+            // 
+            this.receive_startServerButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.receive_startServerButton.Enabled = false;
+            this.receive_startServerButton.Location = new System.Drawing.Point(128, 8);
+            this.receive_startServerButton.Name = "receive_startServerButton";
+            this.receive_startServerButton.Size = new System.Drawing.Size(117, 76);
+            this.receive_startServerButton.TabIndex = 2;
+            this.receive_startServerButton.Text = "Start server";
+            this.receive_startServerButton.UseVisualStyleBackColor = true;
+            this.receive_startServerButton.Click += new System.EventHandler(this.receive_startServerButton_Click);
+            // 
+            // receive_selectFolderButton
+            // 
+            this.receive_selectFolderButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.receive_selectFolderButton.Location = new System.Drawing.Point(8, 8);
+            this.receive_selectFolderButton.Name = "receive_selectFolderButton";
+            this.receive_selectFolderButton.Size = new System.Drawing.Size(114, 79);
+            this.receive_selectFolderButton.TabIndex = 1;
+            this.receive_selectFolderButton.Text = "Select destination folder";
+            this.receive_selectFolderButton.UseVisualStyleBackColor = true;
+            this.receive_selectFolderButton.Click += new System.EventHandler(this.receive_selectFolderButton_Click);
+            // 
+            // receive_progressBar
+            // 
+            this.receive_progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.receive_progressBar.Location = new System.Drawing.Point(8, 279);
+            this.receive_progressBar.Name = "receive_progressBar";
+            this.receive_progressBar.Size = new System.Drawing.Size(364, 36);
+            this.receive_progressBar.TabIndex = 0;
             // 
             // settingsTab
             // 
@@ -225,20 +318,15 @@
             this.settings_saveSettingsButton.TabIndex = 0;
             this.settings_saveSettingsButton.Text = "Save";
             this.settings_saveSettingsButton.UseVisualStyleBackColor = true;
-            this.settings_saveSettingsButton.Click += new System.EventHandler(this.saveSettingsButton_Click);
+            this.settings_saveSettingsButton.Click += new System.EventHandler(this.settings_saveSettingsButton_Click);
             // 
             // send_fileSelect
             // 
             this.send_fileSelect.ReadOnlyChecked = true;
             // 
-            // send_progressBar
+            // receive_selectFolder
             // 
-            this.send_progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.send_progressBar.Location = new System.Drawing.Point(8, 277);
-            this.send_progressBar.Name = "send_progressBar";
-            this.send_progressBar.Size = new System.Drawing.Size(364, 36);
-            this.send_progressBar.TabIndex = 1;
+            this.receive_selectFolder.RootFolder = System.Environment.SpecialFolder.MyComputer;
             // 
             // Window
             // 
@@ -252,6 +340,8 @@
             this.Tabs.ResumeLayout(false);
             this.sendTab.ResumeLayout(false);
             this.sendTab.PerformLayout();
+            this.receiveTab.ResumeLayout(false);
+            this.receiveTab.PerformLayout();
             this.settingsTab.ResumeLayout(false);
             this.settingsTab.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.settings_listenPortInput)).EndInit();
@@ -278,6 +368,13 @@
         private System.Windows.Forms.Label settings_serverAddressInput_label;
         private System.Windows.Forms.TextBox send_Status;
         private System.Windows.Forms.ProgressBar send_progressBar;
+        private System.Windows.Forms.ProgressBar receive_progressBar;
+        private System.Windows.Forms.FolderBrowserDialog receive_selectFolder;
+        private System.Windows.Forms.Button receive_startServerButton;
+        private System.Windows.Forms.Button receive_selectFolderButton;
+        private System.Windows.Forms.TextBox receive_Status;
+        private System.Windows.Forms.Button receive_declineButton;
+        private System.Windows.Forms.Button receive_acceptButton;
     }
 }
 

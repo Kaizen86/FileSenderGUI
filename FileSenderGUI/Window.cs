@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.ComponentModel;
 using System.Security.Cryptography;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Generic;
@@ -13,12 +14,6 @@ namespace FileSenderGUI
 {
     public partial class Window : Form
     {
-        string filename;
-        FileInfo fileinfo;
-        public string checksum;
-        TcpClient tcpclient;
-        Thread connectthread;
-
         public Window()
         {
             InitializeComponent();
@@ -27,42 +22,77 @@ namespace FileSenderGUI
             settings_serverPortInput.Value = Properties.Settings.Default.ServerPort;
             settings_listenPortInput.Value = Properties.Settings.Default.ListenPort;
             //define threads
-            connectthread = new Thread(send);
+            send_connectthread = new Thread(send);
         }
-        public void send_updateStatus(string status)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //send tab
+        string send_filename;
+        FileInfo send_fileinfo;
+        string send_hash;
+        TcpClient send_tcpclient;
+        Thread send_connectthread;
+        Thread send_checksum;
+        void send_updateStatus(string status)
         {
             //append the string to a newline and automatically scroll down to the bottom.
             this.InvokeEx(f => send_Status.Text += "\r\n" + status);
             this.InvokeEx(f => send_Status.SelectionStart = send_Status.Text.Length);
             this.InvokeEx(f => send_Status.ScrollToCaret());
         }
-
-        private void fileSelectButton_Click(object sender, EventArgs e)
+        private void send_fileSelectButton_Click(object sender, EventArgs e)
         {
             //select file
             send_fileSelect.ShowDialog();
-            filename = send_fileSelect.FileName;
+            send_filename = send_fileSelect.FileName;
 
             //if a file was selected, generate checksum of file and get fileinfo.
-            if (filename != "")
+            if (send_filename != "")
             {
-                fileinfo = new FileInfo(filename);
+                send_fileinfo = new FileInfo(send_filename);
                 send_updateStatus("Computing file checksum...");
-                checksum = checkMD5(filename);
+                send_checksum = new Thread(send_computehash);
+                send_checksum.Start();
+                send_checksum.Join();
                 send_updateStatus("File selected.");
             }
         }
-        private void sendButton_Click(object sender, EventArgs e)
+        void send_computehash()
+        {
+            send_hash = methods.checkMD5(send_filename);
+        }
+        private void send_sendButton_Click(object sender, EventArgs e)
         {
             //check that a file has been selected
-            if (filename == null) { send_updateStatus("Error: No file selected"); }
+            if (send_filename == null) { send_updateStatus("Error: No file selected"); }
             else
             {
                 //check if the send thread is already running. if so, abort the thread. if not, start the thread.
-                if (connectthread.IsAlive)
+                if (send_connectthread.IsAlive)
                 {
                     //stop
-                    connectthread.Abort();
+                    send_connectthread.Abort();
                     send_sendButton.Text = "Send";
                 }
                 else
@@ -71,13 +101,11 @@ namespace FileSenderGUI
                     try
                     {
                         //check if thread died; if so dispose the old, useless one and create a new one.
-                        if (connectthread.ThreadState == ThreadState.Stopped || connectthread.ThreadState == ThreadState.Aborted)
+                        if (send_connectthread.ThreadState == ThreadState.Stopped || send_connectthread.ThreadState == ThreadState.Aborted)
                         {
-                            connectthread = new Thread(send);
+                            send_connectthread = new Thread(send);
                         }
-
-                        send_updateStatus("Starting thread...");
-                        connectthread.Start();
+                        send_connectthread.Start();
                         send_sendButton.Text = "Cancel";
                     }
                     catch (Exception err)
@@ -88,30 +116,21 @@ namespace FileSenderGUI
                 }
             }
         }
-        private void saveSettingsButton_Click(object sender, EventArgs e)
-        {
-            //save settings to appdata
-            Properties.Settings.Default.ServerAddress = settings_serverAddressInput.Text;
-            Properties.Settings.Default.ServerPort = Convert.ToInt32(settings_serverPortInput.Value);
-            Properties.Settings.Default.ListenPort = Convert.ToInt32(settings_listenPortInput.Value);
-            Properties.Settings.Default.Save();
-        }
-
-        public void send()
+        void send()
         {
             send_updateStatus("Connecting...");
             try
             {
                 clientdisconnect();
                 //create new client object
-                tcpclient = new TcpClient();
+                send_tcpclient = new TcpClient();
 
                 //connect to the server 
-                tcpclient.Connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.ServerPort);
+                send_tcpclient.Connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.ServerPort);
                 send_updateStatus("Connected. Waiting for remote approval...");
 
                 //communication protocol handler 
-                tcpclient.Client.Send(Encoding.ASCII.GetBytes("REQUEST_FILE_SEND: SIZE="+fileinfo.Length+" NAME="+fileinfo.Name+"\n"));
+                send_tcpclient.Client.Send(Encoding.ASCII.GetBytes(send_fileinfo.Length + "," + send_hash + "," + send_fileinfo.Name + "\n"));
                 //read the response from the client to determine whether to send the file or not
                 string data;
                 //while socket is connected:
@@ -119,7 +138,7 @@ namespace FileSenderGUI
                 {
                     for (; ; )
                     {
-                        var data_bytes = methods.ReceiveAll(tcpclient.Client);
+                        var data_bytes = methods.ReceiveAll(send_tcpclient.Client);
                         data = Encoding.UTF8.GetString(data_bytes, 0, data_bytes.Length);
                         if (data.Length != 0)
                         {
@@ -128,11 +147,11 @@ namespace FileSenderGUI
                             //we now have the response; exit the loop.
                             break;
                         }
-                        if (!methods.IsConnected(tcpclient.Client))
+                        if (!methods.IsConnected(send_tcpclient.Client))
                         {
                             send_updateStatus("Server disconnected.");
                             this.InvokeEx(f => send_sendButton.Text = "Send");
-                            tcpclient.Dispose();
+                            send_tcpclient.Dispose();
                             return;
                         }
                     }
@@ -140,11 +159,11 @@ namespace FileSenderGUI
                 catch
                 {
                     send_updateStatus("Error receiving response from server.");
-                    try { tcpclient.Close(); } catch { }
-                    tcpclient.Dispose();
+                    try { send_tcpclient.Close(); } catch { }
+                    send_tcpclient.Dispose();
                     return;
                 }
-                
+
                 //have they accepted the file?
                 if (data == "ACCEPT_FILE")
                 {
@@ -152,12 +171,12 @@ namespace FileSenderGUI
 
                     //configure progress bar
                     int total = 0;
-                    this.InvokeEx(f => send_progressBar.Maximum = (int)fileinfo.Length);
+                    this.InvokeEx(f => send_progressBar.Maximum = (int)send_fileinfo.Length);
 
                     var readed = -1;
                     var buffer = new Byte[4096];
-                    using (var networkStream = new BufferedStream(new NetworkStream(tcpclient.Client, false)))
-                    using (var fileStream = fileinfo.OpenRead())
+                    using (var networkStream = new BufferedStream(new NetworkStream(send_tcpclient.Client, false)))
+                    using (var fileStream = send_fileinfo.OpenRead())
                     {
                         while (readed != 0)
                         {
@@ -184,18 +203,135 @@ namespace FileSenderGUI
                 this.InvokeEx(f => send_sendButton.Text = "Send");
             }
         }
-        public void clientdisconnect()
+        void clientdisconnect()
         {
             //attempt to disconnect the connection
             try
             {
-                tcpclient.Close();
-                tcpclient.Dispose();
+                send_tcpclient.Close();
+                send_tcpclient.Dispose();
             }
             catch { }
         }
 
-        public async Task ReceiveFile(Socket socket, FileInfo file)
+        //receive tab
+        string receive_foldername;
+        TcpListener receive_listener;
+        Socket receive_socket;
+        Thread receivethread;
+        bool receive_isserverrunning = false;
+
+        void receive_disconnect()
+        {
+            try { receive_socket.Disconnect(false); }
+            catch { }
+            try { receive_socket.Dispose(); }
+            catch { }
+            try { receive_listener.Stop(); }
+            catch { }
+        }
+        void receieve_updateStatus(string status)
+        {
+            //append the string to a newline and automatically scroll down to the bottom.
+            this.InvokeEx(f => receive_Status.Text += "\r\n" + status);
+            this.InvokeEx(f => receive_Status.SelectionStart = receive_Status.Text.Length);
+            this.InvokeEx(f => receive_Status.ScrollToCaret());
+        }
+        private void receive_selectFolderButton_Click(object sender, EventArgs e)
+        {
+            receive_selectFolder.ShowDialog();
+            receive_foldername = receive_selectFolder.SelectedPath;
+            if (receive_foldername != "")
+            {
+                receive_startServerButton.Enabled = true;
+            }
+        }
+        private void receive_startServerButton_Click(object sender, EventArgs e)
+        {
+            if (receive_isserverrunning)
+            {
+                receive_disconnect();
+                receivethread.Abort();
+                receive_startServerButton.Text = "Start server";
+                receieve_updateStatus("Stopped server.");
+                receive_isserverrunning = false;
+            }
+            else
+            {
+                receive_startServerButton.Text = "Stop server";
+                receieve_updateStatus("Started server.");
+                receive_isserverrunning = true;
+                receivethread = new Thread(recv);
+                receivethread.Start();
+            }
+        }
+        public void recv()
+        {
+            try
+            {
+                receieve_updateStatus("Starting chat server...");
+                receive_listener = new TcpListener(IPAddress.Any, Properties.Settings.Default.ListenPort);
+                receive_listener.Start();
+                receieve_updateStatus("Started chat server on port " + Convert.ToString(Properties.Settings.Default.ListenPort));
+                Socket socket = receive_listener.AcceptSocket();
+
+                IPEndPoint remoteIpEndPoint = socket.RemoteEndPoint as IPEndPoint; //create way of getting addresses
+
+                receieve_updateStatus("Connection established from " + remoteIpEndPoint.Address + "\n");
+                //socket is now connected. 
+                for (; ; )
+                {
+                    //while socket is connected:
+                    try
+                    {
+                        var data_bytes = methods.ReceiveAll(socket);
+                        string data = Encoding.UTF8.GetString(data_bytes, 0, data_bytes.Length);
+                        if (data.Length != 0)
+                        {
+                            //remove pesky return at the end
+                            data = data.Remove(data.Length - 1, 1);
+                            //split data by commas.
+                            string[] res = data.Split(Convert.ToChar(","));
+                            foreach (string i in res)
+                            {
+                                receieve_updateStatus(i);
+                            }
+                        }
+                        if (!methods.IsConnected(socket))
+                        {
+                            receieve_updateStatus("Sender disconnected.");
+                            receive_disconnect();
+                            receive_startServerButton.Text = "Start server";
+                            receive_isserverrunning = false;
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            if (methods.IsConnected(socket))
+                            {
+                                MessageBox.Show("Error receiving.");
+                                try { receive_disconnect(); }
+                                catch { }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+        private void receive_acceptButton_Click(object sender, EventArgs e)
+        {
+
+        }
+        private void receive_declineButton_Click(object sender, EventArgs e)
+        {
+
+        }
+        async Task ReceiveFile(Socket socket, FileInfo file)
         {
             var readed = -1;
             var buffer = new Byte[4096];
@@ -211,18 +347,17 @@ namespace FileSenderGUI
             }
         }
 
-        public string checkMD5(string filename)
+        //settings tab
+        private void settings_saveSettingsButton_Click(object sender, EventArgs e)
         {
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = File.OpenRead(filename))
-                {
-                    return BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
-                }
-            }
+            //save settings to appdata
+            Properties.Settings.Default.ServerAddress = settings_serverAddressInput.Text;
+            Properties.Settings.Default.ServerPort = Convert.ToInt32(settings_serverPortInput.Value);
+            Properties.Settings.Default.ListenPort = Convert.ToInt32(settings_listenPortInput.Value);
+            Properties.Settings.Default.Save();
         }
     }
-    public static class methods
+    static class methods
     {
         public static bool IsConnected(this Socket socket)
         {
@@ -241,8 +376,18 @@ namespace FileSenderGUI
             }
             return buffer.ToArray();
         }
+        public static string checkMD5(string filename)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(filename))
+                {
+                    return BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                }
+            }
+        }
     }
-    public static class ISynchronizeInvokeExtensions
+    static class ISynchronizeInvokeExtensions
     {
         public static void InvokeEx<T>(this T @this, Action<T> action) where T : ISynchronizeInvoke
         {
