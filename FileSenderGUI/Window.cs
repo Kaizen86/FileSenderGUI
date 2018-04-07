@@ -131,6 +131,7 @@ namespace FileSenderGUI
                         if (!methods.IsConnected(tcpclient.Client))
                         {
                             send_updateStatus("Server disconnected.");
+                            this.InvokeEx(f => send_sendButton.Text = "Send");
                             tcpclient.Dispose();
                             return;
                         }
@@ -139,13 +140,20 @@ namespace FileSenderGUI
                 catch
                 {
                     send_updateStatus("Error receiving response from server.");
+                    try { tcpclient.Close(); } catch { }
                     tcpclient.Dispose();
                     return;
                 }
                 
                 //have they accepted the file?
-                if (data == "FILE_ACCEPT")
+                if (data == "ACCEPT_FILE")
                 {
+                    send_updateStatus("File accepted. Sending...");
+
+                    //configure progress bar
+                    int total = 0;
+                    this.InvokeEx(f => send_progressBar.Maximum = (int)fileinfo.Length);
+
                     var readed = -1;
                     var buffer = new Byte[4096];
                     using (var networkStream = new BufferedStream(new NetworkStream(tcpclient.Client, false)))
@@ -155,13 +163,18 @@ namespace FileSenderGUI
                         {
                             readed = fileStream.Read(buffer, 0, buffer.Length);
                             networkStream.Write(buffer, 0, readed);
-                            send_updateStatus("Copied " + readed);
+
+                            //update progress bar
+                            total = total + readed;
+                            this.InvokeEx(f => send_progressBar.Value = total);
                         }
                         networkStream.FlushAsync();
                     }
+                    send_updateStatus("File send complete.");
                 }
+                else { send_updateStatus("File rejected. Aborting send..."); }
 
-                //at this point we are disconnected.
+                //at this point we should disconnect.
                 this.InvokeEx(f => send_sendButton.Text = "Send");
                 send_updateStatus("Disconnected.");
             }

@@ -43,6 +43,7 @@
             this.settings_serverAddressInput = new System.Windows.Forms.TextBox();
             this.settings_saveSettingsButton = new System.Windows.Forms.Button();
             this.send_fileSelect = new System.Windows.Forms.OpenFileDialog();
+            this.send_progressBar = new System.Windows.Forms.ProgressBar();
             this.Tabs.SuspendLayout();
             this.sendTab.SuspendLayout();
             this.settingsTab.SuspendLayout();
@@ -65,6 +66,7 @@
             // sendTab
             // 
             this.sendTab.BackColor = System.Drawing.SystemColors.Control;
+            this.sendTab.Controls.Add(this.send_progressBar);
             this.sendTab.Controls.Add(this.send_Status);
             this.sendTab.Controls.Add(this.send_sendButton);
             this.sendTab.Controls.Add(this.send_fileSelectButton);
@@ -85,7 +87,7 @@
             this.send_Status.Name = "send_Status";
             this.send_Status.ReadOnly = true;
             this.send_Status.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.send_Status.Size = new System.Drawing.Size(364, 194);
+            this.send_Status.Size = new System.Drawing.Size(364, 152);
             this.send_Status.TabIndex = 2;
             this.send_Status.Text = "Waiting for file...";
             // 
@@ -229,6 +231,15 @@
             // 
             this.send_fileSelect.ReadOnlyChecked = true;
             // 
+            // send_progressBar
+            // 
+            this.send_progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.send_progressBar.Location = new System.Drawing.Point(8, 277);
+            this.send_progressBar.Name = "send_progressBar";
+            this.send_progressBar.Size = new System.Drawing.Size(364, 36);
+            this.send_progressBar.TabIndex = 1;
+            // 
             // Window
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -266,6 +277,7 @@
         private System.Windows.Forms.Label settings_serverPortInput_label;
         private System.Windows.Forms.Label settings_serverAddressInput_label;
         private System.Windows.Forms.TextBox send_Status;
+        private System.Windows.Forms.ProgressBar send_progressBar;
     }
 }
 
