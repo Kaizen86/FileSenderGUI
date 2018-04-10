@@ -216,6 +216,9 @@ namespace FileSenderGUI
 
         //receive tab
         string receive_foldername;
+        string receive_filename;
+        string receive_filehash;
+        int receive_filesize;
         TcpListener receive_listener;
         Socket receive_socket;
         Thread receivethread;
@@ -245,6 +248,7 @@ namespace FileSenderGUI
             {
                 receive_startServerButton.Enabled = true;
             }
+            receieve_updateStatus("Set folder path to "+receive_foldername);
         }
         private void receive_startServerButton_Click(object sender, EventArgs e)
         {
@@ -269,10 +273,9 @@ namespace FileSenderGUI
         {
             try
             {
-                receieve_updateStatus("Starting chat server...");
                 receive_listener = new TcpListener(IPAddress.Any, Properties.Settings.Default.ListenPort);
                 receive_listener.Start();
-                receieve_updateStatus("Started chat server on port " + Convert.ToString(Properties.Settings.Default.ListenPort));
+                receieve_updateStatus("Listening for file transfer requests on port " + Convert.ToString(Properties.Settings.Default.ListenPort));
                 Socket socket = receive_listener.AcceptSocket();
 
                 IPEndPoint remoteIpEndPoint = socket.RemoteEndPoint as IPEndPoint; //create way of getting addresses
@@ -289,13 +292,15 @@ namespace FileSenderGUI
                         if (data.Length != 0)
                         {
                             //remove pesky return at the end
-                            data = data.Remove(data.Length - 1, 1);
-                            //split data by commas.
+                            data = data.Remove(data.Length - 1, 1); //data structure is as follows: length in bytes, file hash, filename
+                            //split data by commas. 
                             string[] res = data.Split(Convert.ToChar(","));
-                            foreach (string i in res)
-                            {
-                                receieve_updateStatus(i);
-                            }
+                            //put each part of the array into variables
+                            receive_filesize = Convert.ToInt32(res[0]);
+                            receive_filehash = res[1];
+                            receive_filename = res[2];
+                            MessageBox.Show("Filesize: " + receive_filesize + "\nFile hash: " + receive_filehash + "\nFilename: " + receive_filename);
+
                         }
                         if (!methods.IsConnected(socket))
                         {
@@ -306,31 +311,24 @@ namespace FileSenderGUI
                             break;
                         }
                     }
-                    catch
+                    catch (Exception err)
                     {
-                        try
+                        if (methods.IsConnected(socket))
                         {
-                            if (methods.IsConnected(socket))
-                            {
-                                MessageBox.Show("Error receiving.");
-                                try { receive_disconnect(); }
-                                catch { }
-                            }
+                            MessageBox.Show("Error receiving:\n" + err.Message);
+                            try { receive_disconnect(); }
+                            catch { }
                         }
-                        catch { }
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception err)
+            {
+                if (err.Message == "Thread was being aborted.") { }
+                MessageBox.Show("Error receiving:\n" + err.Message);
+            }
         }
-        private void receive_acceptButton_Click(object sender, EventArgs e)
-        {
 
-        }
-        private void receive_declineButton_Click(object sender, EventArgs e)
-        {
-
-        }
         async Task ReceiveFile(Socket socket, FileInfo file)
         {
             var readed = -1;

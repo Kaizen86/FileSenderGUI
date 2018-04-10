@@ -35,8 +35,6 @@
             this.send_sendButton = new System.Windows.Forms.Button();
             this.send_fileSelectButton = new System.Windows.Forms.Button();
             this.receiveTab = new System.Windows.Forms.TabPage();
-            this.receive_declineButton = new System.Windows.Forms.Button();
-            this.receive_acceptButton = new System.Windows.Forms.Button();
             this.receive_Status = new System.Windows.Forms.TextBox();
             this.receive_startServerButton = new System.Windows.Forms.Button();
             this.receive_selectFolderButton = new System.Windows.Forms.Button();
@@ -99,12 +97,12 @@
             this.send_Status.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.send_Status.Location = new System.Drawing.Point(8, 92);
+            this.send_Status.Location = new System.Drawing.Point(8, 87);
             this.send_Status.Multiline = true;
             this.send_Status.Name = "send_Status";
             this.send_Status.ReadOnly = true;
             this.send_Status.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.send_Status.Size = new System.Drawing.Size(364, 179);
+            this.send_Status.Size = new System.Drawing.Size(364, 184);
             this.send_Status.TabIndex = 2;
             this.send_Status.Text = "Waiting for file...";
             // 
@@ -113,7 +111,7 @@
             this.send_sendButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.send_sendButton.Location = new System.Drawing.Point(258, 6);
             this.send_sendButton.Name = "send_sendButton";
-            this.send_sendButton.Size = new System.Drawing.Size(114, 80);
+            this.send_sendButton.Size = new System.Drawing.Size(110, 75);
             this.send_sendButton.TabIndex = 1;
             this.send_sendButton.Text = "Send";
             this.send_sendButton.UseVisualStyleBackColor = true;
@@ -123,7 +121,7 @@
             // 
             this.send_fileSelectButton.Location = new System.Drawing.Point(8, 6);
             this.send_fileSelectButton.Name = "send_fileSelectButton";
-            this.send_fileSelectButton.Size = new System.Drawing.Size(114, 80);
+            this.send_fileSelectButton.Size = new System.Drawing.Size(110, 75);
             this.send_fileSelectButton.TabIndex = 0;
             this.send_fileSelectButton.Text = "Select File";
             this.send_fileSelectButton.UseVisualStyleBackColor = true;
@@ -132,8 +130,6 @@
             // receiveTab
             // 
             this.receiveTab.BackColor = System.Drawing.SystemColors.Control;
-            this.receiveTab.Controls.Add(this.receive_declineButton);
-            this.receiveTab.Controls.Add(this.receive_acceptButton);
             this.receiveTab.Controls.Add(this.receive_Status);
             this.receiveTab.Controls.Add(this.receive_startServerButton);
             this.receiveTab.Controls.Add(this.receive_selectFolderButton);
@@ -145,50 +141,26 @@
             this.receiveTab.TabIndex = 1;
             this.receiveTab.Text = "Receive";
             // 
-            // receive_declineButton
-            // 
-            this.receive_declineButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.receive_declineButton.Enabled = false;
-            this.receive_declineButton.Location = new System.Drawing.Point(251, 49);
-            this.receive_declineButton.Name = "receive_declineButton";
-            this.receive_declineButton.Size = new System.Drawing.Size(121, 35);
-            this.receive_declineButton.TabIndex = 6;
-            this.receive_declineButton.Text = "Decline";
-            this.receive_declineButton.UseVisualStyleBackColor = true;
-            this.receive_declineButton.Click += new System.EventHandler(this.receive_declineButton_Click);
-            // 
-            // receive_acceptButton
-            // 
-            this.receive_acceptButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.receive_acceptButton.Enabled = false;
-            this.receive_acceptButton.Location = new System.Drawing.Point(251, 8);
-            this.receive_acceptButton.Name = "receive_acceptButton";
-            this.receive_acceptButton.Size = new System.Drawing.Size(121, 35);
-            this.receive_acceptButton.TabIndex = 5;
-            this.receive_acceptButton.Text = "Accept";
-            this.receive_acceptButton.UseVisualStyleBackColor = true;
-            this.receive_acceptButton.Click += new System.EventHandler(this.receive_acceptButton_Click);
-            // 
             // receive_Status
             // 
             this.receive_Status.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.receive_Status.Location = new System.Drawing.Point(8, 93);
+            this.receive_Status.Location = new System.Drawing.Point(8, 89);
             this.receive_Status.Multiline = true;
             this.receive_Status.Name = "receive_Status";
             this.receive_Status.ReadOnly = true;
             this.receive_Status.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.receive_Status.Size = new System.Drawing.Size(364, 180);
+            this.receive_Status.Size = new System.Drawing.Size(364, 184);
             this.receive_Status.TabIndex = 3;
             // 
             // receive_startServerButton
             // 
             this.receive_startServerButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.receive_startServerButton.Enabled = false;
-            this.receive_startServerButton.Location = new System.Drawing.Point(128, 8);
+            this.receive_startServerButton.Location = new System.Drawing.Point(262, 8);
             this.receive_startServerButton.Name = "receive_startServerButton";
-            this.receive_startServerButton.Size = new System.Drawing.Size(117, 76);
+            this.receive_startServerButton.Size = new System.Drawing.Size(110, 75);
             this.receive_startServerButton.TabIndex = 2;
             this.receive_startServerButton.Text = "Start server";
             this.receive_startServerButton.UseVisualStyleBackColor = true;
@@ -199,7 +171,7 @@
             this.receive_selectFolderButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.receive_selectFolderButton.Location = new System.Drawing.Point(8, 8);
             this.receive_selectFolderButton.Name = "receive_selectFolderButton";
-            this.receive_selectFolderButton.Size = new System.Drawing.Size(114, 79);
+            this.receive_selectFolderButton.Size = new System.Drawing.Size(110, 75);
             this.receive_selectFolderButton.TabIndex = 1;
             this.receive_selectFolderButton.Text = "Select destination folder";
             this.receive_selectFolderButton.UseVisualStyleBackColor = true;
@@ -373,8 +345,6 @@
         private System.Windows.Forms.Button receive_startServerButton;
         private System.Windows.Forms.Button receive_selectFolderButton;
         private System.Windows.Forms.TextBox receive_Status;
-        private System.Windows.Forms.Button receive_declineButton;
-        private System.Windows.Forms.Button receive_acceptButton;
     }
 }
 
