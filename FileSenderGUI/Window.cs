@@ -25,28 +25,6 @@ namespace FileSenderGUI
             send_connectthread = new Thread(send);
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         //send tab
         string send_filename;
         FileInfo send_fileinfo;
@@ -194,6 +172,7 @@ namespace FileSenderGUI
                 else { send_updateStatus("File rejected. Aborting send..."); }
 
                 //at this point we should disconnect.
+                clientdisconnect();
                 this.InvokeEx(f => send_sendButton.Text = "Send");
                 send_updateStatus("Disconnected.");
             }
@@ -208,6 +187,7 @@ namespace FileSenderGUI
             //attempt to disconnect the connection
             try
             {
+                send_tcpclient.Client.Disconnect(true);
                 send_tcpclient.Close();
                 send_tcpclient.Dispose();
             }
@@ -218,12 +198,11 @@ namespace FileSenderGUI
         string receive_foldername;
         string receive_filename;
         string receive_filehash;
-        int receive_filesize;
+        Int64 receive_filesize;
         TcpListener receive_listener;
         Socket receive_socket;
         Thread receivethread;
         bool receive_isserverrunning = false;
-
         void receive_disconnect()
         {
             try { receive_socket.Disconnect(false); }
@@ -243,12 +222,12 @@ namespace FileSenderGUI
         private void receive_selectFolderButton_Click(object sender, EventArgs e)
         {
             receive_selectFolder.ShowDialog();
-            receive_foldername = receive_selectFolder.SelectedPath;
-            if (receive_foldername != "")
+            if (receive_selectFolder.SelectedPath != "")
             {
+                receive_foldername = receive_selectFolder.SelectedPath;
                 receive_startServerButton.Enabled = true;
+                receieve_updateStatus("Set folder path to " + receive_foldername);
             }
-            receieve_updateStatus("Set folder path to "+receive_foldername);
         }
         private void receive_startServerButton_Click(object sender, EventArgs e)
         {
@@ -276,9 +255,9 @@ namespace FileSenderGUI
                 receive_listener = new TcpListener(IPAddress.Any, Properties.Settings.Default.ListenPort);
                 receive_listener.Start();
                 receieve_updateStatus("Listening for file transfer requests on port " + Convert.ToString(Properties.Settings.Default.ListenPort));
-                Socket socket = receive_listener.AcceptSocket();
+                receive_socket = receive_listener.AcceptSocket();
 
-                IPEndPoint remoteIpEndPoint = socket.RemoteEndPoint as IPEndPoint; //create way of getting addresses
+                IPEndPoint remoteIpEndPoint = receive_socket.RemoteEndPoint as IPEndPoint; //create way of getting addresses
 
                 receieve_updateStatus("Connection established from " + remoteIpEndPoint.Address + "\n");
                 //socket is now connected. 
@@ -287,7 +266,7 @@ namespace FileSenderGUI
                     //while socket is connected:
                     try
                     {
-                        var data_bytes = methods.ReceiveAll(socket);
+                        var data_bytes = methods.ReceiveAll(receive_socket);
                         string data = Encoding.UTF8.GetString(data_bytes, 0, data_bytes.Length);
                         if (data.Length != 0)
                         {
@@ -299,13 +278,12 @@ namespace FileSenderGUI
                             receive_filesize = Convert.ToInt32(res[0]);
                             receive_filehash = res[1];
                             receive_filename = res[2];
-                            MessageBox.Show("Filesize: " + receive_filesize + "\nFile hash: " + receive_filehash + "\nFilename: " + receive_filename);
+                            MessageBox.Show("Filesize: " + methods.filesizePerpective(receive_filesize) + "\nFile hash: " + receive_filehash + "\nFilename: " + receive_filename);
 
                         }
-                        if (!methods.IsConnected(socket))
+                        if (!methods.IsConnected(receive_socket))
                         {
                             receieve_updateStatus("Sender disconnected.");
-                            receive_disconnect();
                             receive_startServerButton.Text = "Start server";
                             receive_isserverrunning = false;
                             break;
@@ -313,11 +291,14 @@ namespace FileSenderGUI
                     }
                     catch (Exception err)
                     {
-                        if (methods.IsConnected(socket))
+                        if (methods.IsConnected(receive_socket))
                         {
-                            MessageBox.Show("Error receiving:\n" + err.Message);
-                            try { receive_disconnect(); }
-                            catch { }
+                            if (!err.Message.Contains("disposed object"))
+                            {
+                                receieve_updateStatus("Error receiving:\n" + err.Message);
+                                try { receive_disconnect(); }
+                                catch { }
+                            }
                         }
                     }
                 }
@@ -325,7 +306,7 @@ namespace FileSenderGUI
             catch (Exception err)
             {
                 if (err.Message == "Thread was being aborted.") { }
-                MessageBox.Show("Error receiving:\n" + err.Message);
+                else { receieve_updateStatus("Error receiving:\n" + err.Message); }
             }
         }
 
@@ -383,6 +364,51 @@ namespace FileSenderGUI
                     return BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
                 }
             }
+        }
+        public static string filesizePerpective(Int64 filesize)
+        {
+            int kilobyte_size = 1024;
+            int megabyte_size = 1024000;
+            int gigabyte_size = 1024000000;
+            //Int64 is needed due to the numbers being way too big for 32 bit .-.
+            Int64 terabyte_size = Convert.ToInt64(1024000000000);
+            string size;
+
+            try
+            {
+                //Calculate file size. Uses kilobytes, megabytes, gigabytes and even terabytes.
+                if (filesize > terabyte_size)
+                {
+                    //Terabytes
+                    float formatted_size = filesize / terabyte_size;
+                    size = (formatted_size.ToString() + " TB (" + filesize + " bytes)");
+                }
+                else if (filesize > gigabyte_size)
+                {
+                    //Gigabytes
+                    float formatted_size = filesize / gigabyte_size;
+                    size = (formatted_size.ToString() + " GB (" + filesize + " bytes)");
+                }
+                else if (filesize > megabyte_size)
+                {
+                    //Megabytes
+                    float formatted_size = filesize / megabyte_size;
+                    size = (formatted_size.ToString() + " MB (" + filesize + " bytes)");
+                }
+                else if (filesize > kilobyte_size)
+                {
+                    //Kilobytes
+                    float formatted_size = filesize / kilobyte_size;
+                    size = (formatted_size.ToString() + " KB (" + filesize + " bytes)");
+                }
+                else
+                {
+                    //Bytes
+                    size = (filesize + " bytes");
+                }
+            }
+            catch (DivideByZeroException) { size = "0 bytes"; }
+            return size;
         }
     }
     static class ISynchronizeInvokeExtensions

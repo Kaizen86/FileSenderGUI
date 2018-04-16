@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Window));
             this.Tabs = new System.Windows.Forms.TabControl();
             this.sendTab = new System.Windows.Forms.TabPage();
             this.send_progressBar = new System.Windows.Forms.ProgressBar();
@@ -306,6 +307,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(388, 354);
             this.Controls.Add(this.Tabs);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(410, 310);
             this.Name = "Window";
             this.Text = "File Sender";
