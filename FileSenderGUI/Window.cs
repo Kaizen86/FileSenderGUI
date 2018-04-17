@@ -21,8 +21,6 @@ namespace FileSenderGUI
             settings_serverAddressInput.Text = Properties.Settings.Default.ServerAddress;
             settings_serverPortInput.Value = Properties.Settings.Default.ServerPort;
             settings_listenPortInput.Value = Properties.Settings.Default.ListenPort;
-            //define threads
-            send_connectthread = new Thread(send);
         }
 
         //send tab
@@ -62,6 +60,7 @@ namespace FileSenderGUI
         }
         private void send_sendButton_Click(object sender, EventArgs e)
         {
+            send_connectthread = new Thread(send);
             //check that a file has been selected
             if (send_filename == null) { send_updateStatus("Error: No file selected"); }
             else
@@ -203,10 +202,12 @@ namespace FileSenderGUI
         string receive_foldername;
         string receive_filename;
         string receive_filehash;
+        string receive_hash;
         Int64 receive_filesize;
         TcpListener receive_listener;
         Socket receive_socket;
         Thread receivethread;
+        Thread receive_checksum;
         bool receive_isserverrunning = false;
         void receive_disconnect()
         {
@@ -223,6 +224,10 @@ namespace FileSenderGUI
             this.InvokeEx(f => receive_Status.Text += "\r\n" + status);
             this.InvokeEx(f => receive_Status.SelectionStart = receive_Status.Text.Length);
             this.InvokeEx(f => receive_Status.ScrollToCaret());
+        }
+        void receive_computehash()
+        {
+            receive_hash = methods.checkMD5(receive_foldername + @"\" + receive_filename);
         }
         private void receive_selectFolderButton_Click(object sender, EventArgs e)
         {
@@ -243,6 +248,7 @@ namespace FileSenderGUI
                 receive_startServerButton.Text = "Start server";
                 receive_updateStatus("Stopped server.");
                 receive_isserverrunning = false;
+                receive_progressBar.Value = 0;
             }
             else
             {
@@ -289,13 +295,13 @@ namespace FileSenderGUI
                             {
                                 //configure progress bar
                                 int total = 0;
-                                this.InvokeEx(f => receive_progressBar.Maximum = (int)receive_filesize+20000);
+                                this.InvokeEx(f => receive_progressBar.Maximum = (int)receive_filesize+4000);
 
                                 //reply to sender with confirmation
                                 receive_socket.Send(Encoding.ASCII.GetBytes("ACCEPT_FILE\n"));
 
                                 //begin receiving the file, writing it into a filestream.
-                                FileInfo file = new FileInfo(receive_foldername+"\\"+receive_filename);
+                                FileInfo file = new FileInfo(receive_foldername+@"\"+receive_filename);
                                 var readed = -1;
                                 var buffer = new Byte[4096];
                                 using (var fileStream = file.OpenWrite())
@@ -311,6 +317,22 @@ namespace FileSenderGUI
                                         this.InvokeEx(f => receive_progressBar.Value = total);
                                     }
                                 }
+
+                                //now we have the file, we should disconnect.
+                                try { receive_disconnect(); }
+                                catch { }
+
+                                //check filehash of received file
+                                receive_updateStatus("File downloaded.\nVerifying file integrity...");
+                                receive_checksum = new Thread(receive_computehash);
+                                receive_checksum.Start();
+                                receive_checksum.Join();
+                                if (receive_filehash != receive_hash)
+                                {
+                                    receive_updateStatus("Detected mismatching hash files.");
+                                    MessageBox.Show("Warning! \n\nThe hash of the downloaded file doesn't match the original! This could be an indication of a corrupted file.\nOriginal hash: " + receive_filehash + "\nHash of downloaded file: " + receive_hash, "Warning", MessageBoxButtons.OK);
+                                }
+                                else { receive_updateStatus("File integrity verified."); }
                             }
                             else { receive_socket.Send(Encoding.ASCII.GetBytes("DENY_FILE")); }
                         }
@@ -326,12 +348,9 @@ namespace FileSenderGUI
                     {
                         if (methods.IsConnected(receive_socket))
                         {
-                            if (!err.Message.Contains("disposed object"))
-                            {
-                                receive_updateStatus("Error receiving:\n" + err.Message);
-                                try { receive_disconnect(); }
-                                catch { }
-                            }
+                            receive_updateStatus("Error receiving file data:\n" + err.Message);
+                            try { receive_disconnect(); }
+                            catch { }
                         }
                     }
                 }
@@ -339,7 +358,8 @@ namespace FileSenderGUI
             catch (Exception err)
             {
                 if (err.Message == "Thread was being aborted.") { }
-                else { receive_updateStatus("Error receiving:\n" + err.Message); }
+                else if (err.Message.Contains("disposed object")) { }
+                else { receive_updateStatus("Error hosting server: " + err.Message); }
             }
         }
 
