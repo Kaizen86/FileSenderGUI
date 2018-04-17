@@ -169,7 +169,12 @@ namespace FileSenderGUI
                     }
                     send_updateStatus("File send complete.");
                 }
-                else { send_updateStatus("File rejected. Aborting send..."); }
+                else if (data == "DENY_FILE") { send_updateStatus("File rejected. Aborting send..."); }
+                else
+                {
+                    send_updateStatus("Protocol error! Received '" + data+"' as a response");
+                    send_tcpclient.Client.Send(Encoding.ASCII.GetBytes("Protocol error! Disconnecting."));
+                }
 
                 //at this point we should disconnect.
                 clientdisconnect();
@@ -212,7 +217,7 @@ namespace FileSenderGUI
             try { receive_listener.Stop(); }
             catch { }
         }
-        void receieve_updateStatus(string status)
+        void receive_updateStatus(string status)
         {
             //append the string to a newline and automatically scroll down to the bottom.
             this.InvokeEx(f => receive_Status.Text += "\r\n" + status);
@@ -226,7 +231,7 @@ namespace FileSenderGUI
             {
                 receive_foldername = receive_selectFolder.SelectedPath;
                 receive_startServerButton.Enabled = true;
-                receieve_updateStatus("Set folder path to " + receive_foldername);
+                receive_updateStatus("Set folder path to " + receive_foldername);
             }
         }
         private void receive_startServerButton_Click(object sender, EventArgs e)
@@ -236,13 +241,13 @@ namespace FileSenderGUI
                 receive_disconnect();
                 receivethread.Abort();
                 receive_startServerButton.Text = "Start server";
-                receieve_updateStatus("Stopped server.");
+                receive_updateStatus("Stopped server.");
                 receive_isserverrunning = false;
             }
             else
             {
                 receive_startServerButton.Text = "Stop server";
-                receieve_updateStatus("Started server.");
+                receive_updateStatus("Started server.");
                 receive_isserverrunning = true;
                 receivethread = new Thread(recv);
                 receivethread.Start();
@@ -254,12 +259,12 @@ namespace FileSenderGUI
             {
                 receive_listener = new TcpListener(IPAddress.Any, Properties.Settings.Default.ListenPort);
                 receive_listener.Start();
-                receieve_updateStatus("Listening for file transfer requests on port " + Convert.ToString(Properties.Settings.Default.ListenPort));
+                receive_updateStatus("Listening for file transfer requests on port " + Convert.ToString(Properties.Settings.Default.ListenPort));
                 receive_socket = receive_listener.AcceptSocket();
 
                 IPEndPoint remoteIpEndPoint = receive_socket.RemoteEndPoint as IPEndPoint; //create way of getting addresses
 
-                receieve_updateStatus("Connection established from " + remoteIpEndPoint.Address + "\n");
+                receive_updateStatus("Connection established from " + remoteIpEndPoint.Address + "\n");
                 //socket is now connected. 
                 for (; ; )
                 {
@@ -275,15 +280,43 @@ namespace FileSenderGUI
                             //split data by commas. 
                             string[] res = data.Split(Convert.ToChar(","));
                             //put each part of the array into variables
-                            receive_filesize = Convert.ToInt32(res[0]);
+                            receive_filesize = Convert.ToInt64(res[0]);
                             receive_filehash = res[1];
                             receive_filename = res[2];
-                            MessageBox.Show("Filesize: " + methods.filesizePerpective(receive_filesize) + "\nFile hash: " + receive_filehash + "\nFilename: " + receive_filename);
+                            //display prompt to alert user of incoming file. since we want to act upon the response, we store the result to a DialogResult.
+                            DialogResult dlgResult = MessageBox.Show("Filesize: " + methods.filesizePerpective(receive_filesize) + "\nFile hash: " + receive_filehash + "\nFilename: " + receive_filename+"\n\nAccept the file?", "Incoming file request", MessageBoxButtons.YesNo);
+                            if (dlgResult == DialogResult.Yes)
+                            {
+                                //configure progress bar
+                                int total = 0;
+                                this.InvokeEx(f => receive_progressBar.Maximum = (int)receive_filesize+20000);
 
+                                //reply to sender with confirmation
+                                receive_socket.Send(Encoding.ASCII.GetBytes("ACCEPT_FILE\n"));
+
+                                //begin receiving the file, writing it into a filestream.
+                                FileInfo file = new FileInfo(receive_foldername+"\\"+receive_filename);
+                                var readed = -1;
+                                var buffer = new Byte[4096];
+                                using (var fileStream = file.OpenWrite())
+                                using (var networkStream = new NetworkStream(receive_socket, false))
+                                {
+                                    while (readed != 0)
+                                    {
+                                        readed = networkStream.Read(buffer, 0, buffer.Length);
+                                        fileStream.Write(buffer, 0, readed);
+
+                                        //update progress bar
+                                        total = total + readed;
+                                        this.InvokeEx(f => receive_progressBar.Value = total);
+                                    }
+                                }
+                            }
+                            else { receive_socket.Send(Encoding.ASCII.GetBytes("DENY_FILE")); }
                         }
                         if (!methods.IsConnected(receive_socket))
                         {
-                            receieve_updateStatus("Sender disconnected.");
+                            receive_updateStatus("Sender disconnected.");
                             receive_startServerButton.Text = "Start server";
                             receive_isserverrunning = false;
                             break;
@@ -295,7 +328,7 @@ namespace FileSenderGUI
                         {
                             if (!err.Message.Contains("disposed object"))
                             {
-                                receieve_updateStatus("Error receiving:\n" + err.Message);
+                                receive_updateStatus("Error receiving:\n" + err.Message);
                                 try { receive_disconnect(); }
                                 catch { }
                             }
@@ -306,23 +339,7 @@ namespace FileSenderGUI
             catch (Exception err)
             {
                 if (err.Message == "Thread was being aborted.") { }
-                else { receieve_updateStatus("Error receiving:\n" + err.Message); }
-            }
-        }
-
-        async Task ReceiveFile(Socket socket, FileInfo file)
-        {
-            var readed = -1;
-            var buffer = new Byte[4096];
-            using (var fileStream = file.OpenWrite())
-            using (var networkStream = new NetworkStream(socket, false))
-            {
-                while (readed != 0)
-                {
-                    readed = networkStream.Read(buffer, 0, buffer.Length);
-                    fileStream.Write(buffer, 0, readed);
-                    Console.WriteLine("Copied " + readed);
-                }
+                else { receive_updateStatus("Error receiving:\n" + err.Message); }
             }
         }
 
